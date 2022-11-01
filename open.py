@@ -4,7 +4,7 @@ import pyttsx3
 
 
 # Load your API key from an environment variable or secret management service
-key = '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'
+key = ''#enter your key here
 
 query = 'The following is a conversation with a virtual assistant whose name is friday. The assistant is sarcastic, yet helpful.\nHuman: Hi what is your name?\nFriday:'
 
