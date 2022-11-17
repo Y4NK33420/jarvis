@@ -17,5 +17,8 @@ virtual assistant with multitude of functions and even has gpt3 support for clev
 12) Use gpt-3 model to reply questions with wit
 !note you need to enter your own api key for that in the open.py file
 !get it from https://beta.openai.com/signup
+13) Controlling mouse using voice commands
+14) Download any youtube video(it gets the video link from the address bar in your browser in full screen mode)
+!coordinates of the address bar have been set taking full screen mode into mind you can change them according to your own need
 
 and many more to come...
