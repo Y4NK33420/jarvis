@@ -22,9 +22,12 @@ import wikipedia
 from time import sleep
 from threading import Thread
 import openai
-from open import key
+from open import key,clever #import from file open.py 
 import playsound
-
+import requests
+import json
+import urllib
+import re
 
 #here we are initializing the text-to-speech engines and defining its voice
 engine = pyttsx3.init("sapi5") 
@@ -70,13 +73,13 @@ def recognize():
     return said.lower() # returning the recognised text to the variable assigned
 
 # function for accessing gpt3 model for qna capabilities
-def clever(query):
-
-    response = openai.Completion.create(model="text-davinci-002", prompt=query, temperature=0.9, max_tokens=130)
-
-    response = response['choices'][0]['text']
-
-    speak(response)    
+#def clever(query):
+#
+#    response = openai.Completion.create(model="text-davinci-002", prompt=query, temperature=0.9, max_tokens=130)
+#
+#    response = response['choices'][0]['text']
+#
+#    speak(response)    
 
 
 #this is the main function that initiates the required task according to the voice command 
@@ -99,7 +102,7 @@ def main_func():
         wiki()
 
     elif 'app' in query:
-            open_app()
+        open_app(query)
 
     elif 'open' in query and 'youtube' in query:
             open_youtube()
@@ -117,6 +120,15 @@ def main_func():
             joke = pyjokes.get_joke()
             speak(joke)
     
+    elif 'type' in query:
+        type()
+    
+    elif 'location' in query:
+        location()
+
+    elif 'time' in query:
+        speak(f'The time is {datetime.datetime.now().hour} {datetime.datetime.now().minute} ')
+
     elif 'download' in query and 'video' in query:
         download_vid()
 
@@ -164,6 +176,11 @@ def main_func():
             thread = Thread(target=timer,args=(tm,'time up'))
             thread.start()
 
+    elif 'time' in query:
+        if datetime.datetime.now().hour > 12:
+            speak(f'The time is {int(datetime.datetime.now().hour) - 12} {datetime.datetime.now().minute} ')
+        else:
+            speak(f'The time is {datetime.datetime.now().hour} {datetime.datetime.now().minute} ')
 
     else:
         #if the user said a function which is not yet present we can close the loop after asking if there is anything else we can do
@@ -179,7 +196,7 @@ def main_func():
 
 #defining various functions for our assistant
 
-
+# timer(890, 'wake up')
 def timer(time,msg):
     '''
     This is the timer function to be used in a seperate thread
@@ -207,6 +224,23 @@ def wish():
     else:
         speak('good evening')    
 
+def find_link(name):
+    query = name.split(' ')
+    srch = ''
+    for i in query:
+        srch = srch+'+'+i
+    srch = srch[1:]
+    print(srch)
+    url = str(f'https://www.youtube.com/results?search_query={srch}')
+    url = url.encode('ascii', 'ignore').decode('ascii')
+
+    html = urllib.request.urlopen(url)
+    video_ids = re.findall(r'watch\?v=(\S{11})', html.read().decode())
+    return ('https://www.youtube.com/watch?v='+video_ids[0])
+
+def yt_full():
+    pass
+
 def wiki():
     """searches for anything on wikipedia after getting voice input from the user
     """    
@@ -215,19 +249,46 @@ def wiki():
     result = wikipedia.summary(query, sentences = 3)   
     speak(result)
 
+def location():
+        speak("Wait, let me check")
+        try:
+            send_url = "http://api.ipstack.com/check?access_key=8e00f15add44e5b7834c7c76bc2dd6b3"
+            geo_req = requests.get(send_url)
+            geo_json = json.loads(geo_req.text)
+            city = geo_json['city']
+            country = geo_json['country_name']
+            state = geo_json['region_name']
+            speak(f'We are in {country},{state},{city}')
+        except Exception as e:
+            speak("Sorry due to network issue i am not able to find where we are.")
+
 def play_music():
     """plays music from spotify by opening spotify from your computer and pressing the play button to play the most
     recently played song
     """    
     os.startfile(r"D:\Spotify\Spotify.exe")
+    speak('Which song')
+    query = recognize()
     time.sleep(5)
-    pyautogui.moveTo(963,1008)
+    pyautogui.hotkey('ctrl','l')
+    time.sleep(1)
+    pyautogui.write(query)
+    time.sleep(1)
+    pyautogui.moveTo(786,380)
     pyautogui.click()
+    time.sleep(1)
+    img = pyautogui.screenshot()
+    pt = pyautogui.find_img(img,"D:\python projects\projects\content\playbutton.png")
+    try:
+        pyautogui.click(pt)
+    except Exception as e:
+        pass
+    pyautogui.hotkey('alt','tab')
 
 def pause():
     """pauses the currently playing media
     """    
-    pyautogui.press('f10')
+    pyautogui.press('playpause')
 
 def download_vid():
     """downloads the current video by getting link from browser's query box and downloading it using pytube
@@ -281,16 +342,57 @@ def google_search():
     webbrowser.open(f'https://google.com/search?q={query}')
     speak('This is what i found sir')
 
+def type():
+    speak('start speaking sir')
+    txtprev = ''
+    while 1:
+        txt = get_audio()
+        if 'terminate' in txt:
+            speak('should i save it?')
+            wtd = recognize()
+            if 'yes' in wtd:
+                speak('What should be the filename?')
+                file_name = recognize()
+                pyautogui.hotkey('ctrl','s')
+                pyautogui.write(file_name)
+                pyautogui.press('enter')
+                pyautogui.hotkey('alt','f4')
+                break
+            else:
+                pyautogui.hotkey('ctrl','w')
+                pyautogui.press('right')
+                pyautogui.press('enter')
+                break
+        elif 'done' in txt:
+            break
+        elif 'delete that' in txt:
+            pyautogui.press('backspace',presses = int(len(txtprev) + 1))
+        elif 'next line' in txt:
+            pyautogui.press('enter')
+        else:
+            pyautogui.write(f'{txt} ')
+        txtprev = txt
 
-def open_app():
+def open_app(query):
     """opens up your required app through cmd.
     Does not work for apps that cmd doesn't recognize
     """    
-    speak('which app would you like to open')
-    query = recognize()
-    
-    if 'chrome' in query:
-        os.startfile("C:\Program Files\Google\Chrome\Application\chrome.exe")
+    try:
+        app = str(query.split(' ')[2])
+        print(app)
+        pyautogui.hotkey('win','s')
+        time.sleep(0.2)
+        pyautogui.write(app)
+        time.sleep(0.2)
+        pyautogui.press('enter')
+    except IndexError as e:
+        speak('which app')
+        app = recognize()
+        pyautogui.hotkey('win','s')
+        time.sleep(0.2)
+        pyautogui.write(app)
+        time.sleep(0.2)
+        pyautogui.press('enter')
     
     else:
         os.system(query)
@@ -373,6 +475,8 @@ def mainloop():
             else:
                 speak('please specify the direction')
 
+        elif 'play' in ctext or 'pause' in ctext:
+            pause()
         elif 'click' in ctext:
             pyautogui.click()
         #checking for exit or quit in query which if present will break the while loop and close the program
