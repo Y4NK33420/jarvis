@@ -13,7 +13,6 @@ import speech_recognition as sr
 import datetime
 from googlesearch import search
 import os, webbrowser
-import pyjokes
 import time
 import pyautogui
 import clipboard
@@ -117,7 +116,7 @@ def main_func():
         pause()
 
     elif 'jokes' in query or "joke" in query:
-            joke = pyjokes.get_joke()
+            joke = clever('tell me a joke')
             speak(joke)
     
     elif 'type' in query:
@@ -126,14 +125,8 @@ def main_func():
     elif 'location' in query:
         location()
 
-    elif 'time' in query:
-        speak(f'The time is {datetime.datetime.now().hour} {datetime.datetime.now().minute} ')
-
     elif 'download' in query and 'video' in query:
         download_vid()
-
-    elif 'anime' in query or 'boruto' in query:
-        webbrowser.open('https://zoro.to/watch/boruto-naruto-next-generations-8143')
 
     #the timer function is defined inside main function itself so that user doesn't have to speak the time again
     #it extracts the time from the first prompt itself instead of telling user to say it again
