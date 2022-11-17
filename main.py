@@ -443,7 +443,7 @@ def get_audio():
 
 
 #this is the mainloop which allows our assistant to run 24/7 in the background
-WAKE = "friday"#wake word for the assistant after listening which it will activate
+WAKE = "jarvis"#wake word for the assistant after listening which it will activate
 def mainloop():
     #initially wishes the user
     speak('welcome yankee')
