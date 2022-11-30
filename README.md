@@ -2,7 +2,7 @@
 virtual assistant with multitude of functions and even has gpt3 support for clever tasks
 
 # Features
-1) Recognise audio commans
+1) Recognise audio commands
 2) Speak output
 3) Wish user on the basis of time of the day
 4) Search google using fully automated voice based search
